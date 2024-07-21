@@ -36,13 +36,13 @@
 # 超链接
   [bilibil](https://www.bilibili.com "点击进入”）
 # 代码插入
-'''cpp
-   #include<iostream> 
+'''cpp <br>
+   #include<iostream> <br>
 
-   using namespace std;
-   int main(){
-    cout << " hello " << endl;
-   return 0;
+   using namespace std; <br>
+   int main(){           <br>
+    cout << " hello " << endl; <br>
+   return 0; <br>
    }
 '''
 
