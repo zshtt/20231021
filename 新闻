@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <regex.h>
+#include <string.h>
+#include<stdlib.h>
+#include <sys/mman.h>
+#include <sys/fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+void extract_info(const char *content) {
+    regex_t news_link_regex, image_link_regex, news_title_regex;
+ 
+    // 编译正则表达式
+    if (regcomp(&news_link_regex, "<a href=\"([^\"]*)\"", REG_EXTENDED)!= 0) {
+        printf("Error compiling news link regex\n");
+        return;
+    }
+ 
+    if (regcomp(&image_link_regex, "<img src=\"([^\"]*)\"", REG_EXTENDED)!= 0) {
+        printf("Error compiling image link regex\n");
+        return;
+    }
+ 
+    if (regcomp(&news_title_regex, "<a.*?>(.*?)</a>", REG_EXTENDED)!= 0) {
+        printf("Error compiling news title regex\n");
+        return;
+    }
+    regmatch_t matches[2];
+ 
+    // 提取新闻地址
+    while (regexec(&news_link_regex, content, 2, matches, 0) == 0) {
+        int start = matches[1].rm_so;
+        int end = matches[1].rm_eo;
+        char *news_link = (char *)malloc(end - start + 1);
+        strncpy(news_link, content + start, end - start);
+        news_link[end - start] = '\0';
+        printf("新闻地址: %s\n", news_link);
+        free(news_link);
+    }
+ 
+    // 提取配图地址
+    while (regexec(&image_link_regex, content, 2, matches, 0) == 0) {
+        int start = matches[1].rm_so;
+        int end = matches[1].rm_eo;
+        char *image_link = (char *)malloc(end - start + 1);
+        strncpy(image_link, content + start, end - start);
+        image_link[end - start] = '\0';
+        printf("配图地址: %s\n", image_link);
+        free(image_link);
+    }
+ 
+    // 提取新闻标题
+    while (regexec(&news_title_regex, content, 2, matches, 0) == 0) {
+        int start = matches[1].rm_so;
+        int end = matches[1].rm_eo;
+        char *news_title = (char *)malloc(end - start + 1);
+        strncpy(news_title, content + start, end - start);
+        news_title[end - start] = '\0';
+        printf("新闻标题: %s\n", news_title);
+        free(news_title);
+    }
+ 
+    // 释放正则表达式内存
+    regfree(&news_link_regex);
+    regfree(&image_link_regex);
+    regfree(&news_title_regex);
+}
+ 
+int main() {
+    const char *data = NULL;
+    int fd,size;
+    fd = open ("news.html",O_RDWR);
+    size = lseek(fd,0,SEEK_END);
+    data = mmap(NULL,size,PROT_READ|PROT_WRITE,MAP_PRIVATE,fd,0);
+    close(fd);
+ 
+    extract_info(data);
+ 
+    return 0;
+}
+ 
